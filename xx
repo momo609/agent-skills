@@ -1,0 +1,114 @@
+# triton算子自动迁移
+
+想要迁移index_select算子，基于tirton_ascend提供的docs还有jx社区文档，想要生成一个自动迁移triton算子的skills。
+### 初始promot:
+![alt text](image-1.png)
+agent生成初步的index_select在npu上适配代码，以及精度测试脚本
+![alt text](image-2.png)
+### 迭代
+初步生成的test脚本，存在功能报错，但agent对解决npu上报错经验过少，因此人工介入专家知识作为先验。
+![alt text](image-3.png)
+这一次测试脚本运行成功，但存在用例未通过，迁移的代码有精度问题
+![alt text](image-5.png)
+agent通过编写单元测试用例脚本，成功找到了精度问题的原因：
+![alt text](image-4.png)
+问题解决后，算子精度正常，npu迁移完成
+
+### 总结
+总结定位的整体过程以及给的参考文档，总结了triton算子自动迁移的skills
+![alt text](image-6.png)
+输出的总结包含以下:
+#### 1. 完整技能总结
+`TRITON_TO_ASCEND_MIGRATION_SKILLS.md`
+
+包含10个章节：
+
+- 迁移流程概览
+- 常见问题及解决方案 （重点：逻辑运算符陷阱 and → & ）
+- 精度测试用例设计
+- 调试技巧
+- 最佳实践
+- 迁移检查清单
+- 常见错误速查表
+- 参考资料
+- 案例研究（index_select迁移详解）
+- 总结
+#### 2. 测试用例模板
+`test_template.py`
+
+包含5类测试：
+
+- 基础精度测试（不同维度）
+- 不同规模测试（小/中/大/超大规模）
+- 边界情况测试（极端输入）
+- 不同数据类型测试（float16/float32/bfloat16）
+- 性能基准测试
+#### 3. 调试脚本模板
+`debug_template.py`
+
+包含6种调试场景：
+
+- 基础调试
+- NaN问题调试
+- 数据类型问题调试
+- 边界情况调试
+- 对比调试
+- 性能调试
+#### 4. 快速参考卡片
+`TRITON_MIGRATION_QUICK_REFERENCE.md`
+
+一页式快速参考，包含：
+
+- 🚨 最常见错误（逻辑运算符陷阱）
+- 📋 迁移检查清单
+- 🧪 测试用例设计
+- 🔧 调试流程
+- 🎯 常见问题速查表
+#### 5. 更新项目总结
+`MIGRATION_SUMMARY.md`
+
+添加了index_select算子迁移案例，重点记录了逻辑运算符陷阱问题。
+
+#### 🔑 核心要点总结
+##### 迁移流程总结
+```
+1. 分析原始算子逻辑
+2. 适配昇腾NPU特性
+3. 修复常见问题（如 and → &）
+4. 编写全面测试用例
+5. 运行测试并修复问题
+6. 性能优化
+7. 文档更新
+```
+##### 测试用例设计要点
+必须覆盖：
+
+- ✅ 不同维度（包括负维度）
+- ✅ 不同规模（小/中/大/超大规模）
+- ✅ 边界情况（极端输入）
+- ✅ 不同数据类型（float16/float32/bfloat16）
+- ✅ 性能基准
+##### 调试技巧
+1. 固定随机种子 确保测试可重现
+2. 创建最小复现脚本 隔离问题
+3. 对比PyTorch原生实现 定位差异
+4. 检查NaN/Inf输出 快速发现问题
+5. 分层调试 逐步定位问题
+#### 📖 使用建议
+1. 新算子迁移时 ：
+   
+   - 参考 TRITON_TO_ASCEND_MIGRATION_SKILLS.md 了解完整流程
+   - 使用 test_template.py 创建测试用例
+   - 遇到问题时使用 debug_template.py 快速定位
+2. 快速查阅时 ：
+   
+   - 查看 TRITON_MIGRATION_QUICK_REFERENCE.md 快速参考卡片
+3. 代码审查时 ：
+   
+   - 使用迁移检查清单确保没有遗漏
+
+### 使用方式
+和agent对话：
+- 参考 TRITON_TO_ASCEND_MIGRATION_SKILLS.md 迁移算子到昇腾npu上
+- 使用 test_template.py 创建测试用例
+- 遇到问题时使用 debug_template.py 快速定位
